@@ -1,0 +1,73 @@
+<form id="preset-create" autocomplete="off" onsubmit="event.preventDefault();">
+
+    <div class="form-group">
+        <label>Preset Name</label>
+        <input type="text" name="name" placeholder="Preset Name" value="{{preset.titleText}}"/>
+    </div>
+
+    <div class="form-group">
+        <label>Preset Color</label>
+        <div class="flexrow">
+            <input type="text" name="color" value="{{preset.colorText}}" data-dtype="String"/>
+            <input type="color" value="{{preset.colorText}}" data-edit="color"/>
+        </div>
+    </div>
+    {{#if defaultFolder}}
+        <h3 style='margin-bottom:0px;'>This is the default preset</h3>
+    {{/if}}
+    <div class="form-group">
+        <ul>
+            {{#if defaultFolder}}
+                <li><i>Any new visible navigation item(s) will be included in this preset</i></li>
+                <li><i>Navigation items in this preset will show up as Unassigned</i></li>
+            {{else}}
+                <li><i>Any marked navigation item(s) will be included in this folder. </i></li>
+                <li><i>A navigation item can only belong to one folder.</i></li>
+                <li><i>Marking navigation items already assigned to other presets will move them here.</i></li>
+            {{/if}}
+        </ul>
+    </div>
+    {{#unless defaultFolder}}
+    <div class="form-group">
+        <div class='form-scene-list'>
+            <script>
+                document.querySelector("#preset-create input[name='search-scenes']").addEventListener('keyup',function(event){
+                    let searchTerm = this.value;
+                    let scenes = document.querySelectorAll('#preset-create .form-scene-list .scene-select')
+                    for (let scene of scenes){
+                        if (scene.innerText.toLowerCase().includes(searchTerm.toLowerCase())){
+                            scene.style.display='';
+                        }else{
+                            scene.style.display='none';
+                        }
+                    }
+                })
+            </script>
+            <div class='form-header'>
+                <i class='fas fa-search'></i><input type='text' name='search-scenes' placeholder='Search'/>
+            </div>
+            <h2>Assigned</h2>
+            {{#each ascenes}}
+                <div class='flexrow scene-select scene-assigned'>
+                    <input type="checkbox" name="{{this.id}}" {{#ifInPreset this.id ../preset.sceneList}} checked {{/ifInPreset}}/>
+                    <label for="{{this.id}}" style='margin-top:2px'>{{this.data.name}} {{#if this.active}}[ACTIVE]{{/if}}</label>
+                </div>
+            {{/each}}
+            <h2>Unassigned</h2>
+            {{#each uscenes}}
+                <div class='flexrow scene-select scene-unassigned'>
+                    <input type="checkbox" name="{{this.id}}"/>
+                    <label for="{{this.id}}" style='margin-top:2px;color:#666;'><i>{{this.data.name}}</i></label>
+                </div>
+            {{/each}}
+        </div>
+    </div>
+    {{/unless}}
+    <div class='flexrow'>
+        {{#if deleteText}}
+            <input type='hidden' name='delete' id='deleteValue' value=''/>
+            <button class='cfolder-submit' id='delete' type="submit" onclick="document.querySelector('#deleteValue').value='1';"><i class="fas fa-trash"></i> {{deleteText}}</button>
+        {{/if}}
+        <button class='cfolder-submit' type="submit"><i class="fas fa-check"></i> {{submitText}}</button>
+    </div>
+</form>

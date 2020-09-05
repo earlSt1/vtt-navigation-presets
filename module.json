@@ -1,0 +1,16 @@
+{
+    "name": "navigation-presets",
+    "title": "Navigation Presets",
+    "description": "Preset folders for scenes",
+    "author": "Erceron",
+    "version": "1.0.0",
+    "minimumCoreVersion": "0.6.5",
+    "compatibleCoreVersion":"0.6.6",
+    "esmodules": [
+        "./navigation-presets.js"
+      ],
+    "styles": ["./styles.css"],
+    "url": "https://github.com/earlSt1/vtt-compendium-folders",
+    "manifest": "",
+    "download": ""
+  }
