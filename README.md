@@ -15,6 +15,7 @@ Deleting a preset will add all navigation items within that preset to the Defaul
 ## Future
 1. Show player status in presets (number of players, if a scene is active)
 2. Nested presets
+3. Import scene folder structure to presets
 
 Any issues feel free to ping me on Discord (@Erceron#0370)
 
