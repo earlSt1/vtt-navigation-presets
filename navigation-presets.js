@@ -243,6 +243,7 @@ function addEventListeners(){
     });
     dropdown.addEventListener('contextmenu',function(ev){
         ev.stopPropagation();
+        ev.preventDefault();
         createContextMenu(dropdown);   
     });
     let otherPresets = document.querySelectorAll('li.nav-preset');
@@ -256,6 +257,7 @@ function addEventListeners(){
         });
         preset.addEventListener('contextmenu',function(ev){
             ev.stopPropagation();
+            ev.preventDefault();
             createContextMenu(preset);
         });
     }
