@@ -20,6 +20,12 @@ a.scene-presets > .fa-caret-down,.fa-caret-right{
 a.scene-presets > .fa-caret-right{
   padding-left:3.5px;
 }
+a.scene-presets > nav:hover{
+  text-shadow:0 0 black;
+}
+a.scene-presets > nav > ol > li:hover{
+  text-shadow: 0 0 8px red;
+}
 #navpresets-menu{
   height: max-content;
   min-width: 150px;
@@ -57,7 +63,7 @@ li.nav-preset{
   top: calc(100% + 2px);
 }
 #preset-context-menu{
-  width: 100%;
+  width: 32px;
   height: max-content;
   min-width: 150px;
   max-width: 360px;
@@ -80,4 +86,25 @@ li.nav-preset{
 }
 #preset-context-menu li.context-item > i{
   margin-right:5px;
+}
+/*Forms*/
+#preset-create input[name='search-scenes']{
+  width: calc(100% - 25px);
+}
+#preset-create i.fa-search{
+  padding-left:5px;
+  padding-right:5px;
+}
+#preset-create .form-header{
+  padding-top:4px;
+  padding-bottom:4px;
+}
+#preset-create .form-scene-list{
+  height:300px; 
+  overflow:auto;
+  background:rgba(0,0,0,0.05);
+  border:1px solid #7a7971;
+  border-radius:3px;
+  padding:1px 3px;
+  font-size:13px;
 }

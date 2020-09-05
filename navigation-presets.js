@@ -164,21 +164,20 @@ function setupPresets(){
     navbar.insertAdjacentElement('afterbegin',dropdown);
     navbar.insertAdjacentElement('afterbegin',presetMenu);
     //Create button
-    if (game.user.isGM){
-        let createButton = document.createElement('a');
-        createButton.classList.add('create-preset');
-        createButton.title='Create Preset';
-        createButton.style.backgroundColor='rgba(0, 0, 0, 0.5)'
-        let createIcon = document.createElement('i');
-        createIcon.classList.add('fas','fa-plus');
+    let createButton = document.createElement('a');
+    createButton.classList.add('create-preset');
+    createButton.title='Create Preset';
+    createButton.style.backgroundColor='rgba(0, 0, 0, 0.5)'
+    let createIcon = document.createElement('i');
+    createIcon.classList.add('fas','fa-plus');
 
-        createButton.innerHTML=createIcon.outerHTML;
-        navbar.insertAdjacentElement('afterbegin',createButton);
-        createButton.addEventListener('click',function(){
-            let newFolder = new NavigationPreset('New Preset','');
-            new NavigationPresetEditConfig(newFolder).render(true);
-        })
-    } 
+    createButton.innerHTML=createIcon.outerHTML;
+    navbar.insertAdjacentElement('afterbegin',createButton);
+    createButton.addEventListener('click',function(){
+        let newFolder = new NavigationPreset('New Preset','');
+        new NavigationPresetEditConfig(newFolder).render(true);
+    })
+    
     filterNavItemsToActivePreset(activePreset)
 }
 function createContextMenu(parent){
@@ -193,12 +192,46 @@ function createContextMenu(parent){
     }
     let presetContextMenuList = document.createElement('ol');
     presetContextMenuList.classList.add('context-items');
+
     let presetEditOption = document.createElement('li');
     presetEditOption.classList.add('context-item')
     let editIcon = document.createElement('i');
     editIcon.classList.add('fas','fa-cog');
     presetEditOption.innerHTML=editIcon.outerHTML+"Edit";
+
     presetContextMenuList.appendChild(presetEditOption);
+
+    if (parent.getAttribute('data-npreset-id')!='default'){
+        let presetDeleteOption = document.createElement('li');
+        presetDeleteOption.classList.add('context-item')
+        let deleteIcon = document.createElement('i');
+        deleteIcon.classList.add('fas','fa-trash');
+        presetDeleteOption.innerHTML=deleteIcon.outerHTML+"Delete";
+        presetDeleteOption.addEventListener('click',function(ev){
+            ev.stopPropagation();
+            closeContextMenu()
+            let preset = Settings.getPresets()[parent.getAttribute('data-npreset-id')]
+            new Dialog({
+                title: "Delete Preset",
+                content: "<p>Are you sure you want to delete the preset <strong>"+preset.titleText+"?</strong></p>"
+                        +"<p><i>Navigation items in these presets will be moved to the Default preset</i></p>",
+                buttons: {
+                    yes: {
+                        icon: '<i class="fas fa-check"></i>',
+                        label: "Yes",
+                        callback: () => deletePreset(preset._id)
+                    },
+                    no: {
+                        icon: '<i class="fas fa-times"></i>',
+                        label: "No"
+                    }
+                }
+            }).render(true);
+        })
+        presetContextMenuList.appendChild(presetDeleteOption);
+    }
+    
+    
     presetContextMenu.appendChild(presetContextMenuList);
     
     document.addEventListener('click',function(ev){
@@ -273,9 +306,9 @@ class NavigationPresetEditConfig extends FormApplication {
   
     get title() {
         if ( this.object.colorText.length>1  ) {
-            return `Preset Update: ${this.object.titleText}`;
+            return `Update Preset: ${this.object.titleText}`;
         }
-        return "Preset Create";
+        return "Create Preset";
     }
 
     getGroupedPacks(){
