@@ -20,7 +20,7 @@ a.scene-presets > .fa-caret-down,.fa-caret-right{
 a.scene-presets > .fa-caret-right{
   padding-left:3.5px;
 }
-a.scene-presets > nav:hover{
+a.scene-presets:hover{
   text-shadow:0 0 black;
 }
 a.scene-presets > nav > ol > li:hover{
@@ -51,10 +51,13 @@ li.nav-preset{
 #navpresets-menu.expand-down{
   top: calc(100% - 8px);
 }
-#navpresets-menu > .context-item{
+#navpresets-menu .context-item{
   list-style: none;
   margin: 0;
   padding: 2;
+}
+#navpresets-menu .context-item:hover{
+  text-shadow: 0 0 8px red;
 }
 .nav-preset > #preset-context-menu{
   margin-top:-7px
