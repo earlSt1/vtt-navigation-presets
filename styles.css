@@ -111,3 +111,6 @@ li.nav-preset{
   padding:1px 3px;
   font-size:13px;
 }
+a.scene-presets:hover{
+  color:#f0f0e0;
+}
