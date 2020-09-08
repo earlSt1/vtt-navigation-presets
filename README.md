@@ -13,10 +13,10 @@ Anyone who has used my Compendium Folders and Macro Folders modules will be fami
 Deleting a preset will add all navigation items within that preset to the Default preset.
 
 ## Future
-1. Show player status in presets (number of players, if a scene is active)
-2. Nested presets
+1. ~~Show player status in presets (number of players, if a scene is active)~~ Now in v1.0.2
+2. Saving open/close state of preset bar
 3. Import scene folder structure to presets
-
+4. Nested presets
 Any issues feel free to ping me on Discord (@Erceron#0370)
 
 ## Contribution
