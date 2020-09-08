@@ -46,6 +46,32 @@ function alphaSortPresets(presets){
     })
     return sorted;
 }
+function generatePlayerIcons(preset){
+    let playerIconList = [];
+    for (let scene of document.querySelectorAll('li.scene.nav-item')){
+        if (preset.sceneList.includes(scene.getAttribute('data-scene-id'))){
+            let players = scene.querySelectorAll('.scene-players > .scene-player')
+            if (players != null){
+                for (let player of players){
+                    let newPlayer = player.cloneNode();
+                    newPlayer.innerText = player.innerText;
+                    playerIconList.push(newPlayer);
+                }
+            }
+        }
+    }
+    return playerIconList;
+}
+function presetHasActiveScene(preset){
+    for (let scene of document.querySelectorAll('li.scene.nav-item')){
+        if (preset.sceneList.includes(scene.getAttribute('data-scene-id'))){
+            if (scene.querySelector('i.fa-bullseye') != null){
+                return true;
+            }
+        }
+    }
+    return false;
+}
 export class NavigationPreset{
     constructor(title,color){
         this.title = title;
@@ -135,7 +161,13 @@ function setupPresets(){
     dropdown.classList.add('scene-presets');
     let caretIcon = document.createElement('i');
     caretIcon.classList.add('fas','fa-caret-right');
-    dropdown.innerHTML=caretIcon.outerHTML+activePreset.titleText;
+    // if (presetHasActiveScene(activePreset)){
+    //     let bullseye = document.createElement('i');
+    //     bullseye.classList.add('fas','fa-bullseye');
+    //     dropdown.innerHTML=caretIcon.outerHTML+bullseye.outerHTML+activePreset.titleText;    
+    // }else{
+        dropdown.innerHTML=caretIcon.outerHTML+activePreset.titleText;
+    //}
     dropdown.style.backgroundColor=activePreset.colorText
     dropdown.setAttribute('data-npreset-id',activePreset._id);
 
@@ -151,9 +183,26 @@ function setupPresets(){
         if (preset._id != activePreset._id){
             let preset1 = document.createElement('li');
             preset1.classList.add('nav-preset');
-            preset1.innerHTML = preset.titleText
+            if (presetHasActiveScene(preset)){
+                let bullseye = document.createElement('i');
+                bullseye.classList.add('fas','fa-bullseye');
+                preset1.innerHTML=bullseye.outerHTML+preset.titleText;    
+            }else{
+                preset1.innerHTML=preset.titleText;
+            }
             preset1.style.backgroundColor=preset.colorText;
             preset1.setAttribute('data-npreset-id',preset._id);
+            
+            //Player icons
+            let playerIcons = generatePlayerIcons(preset);
+            if (playerIcons.length>0){
+                let playerList = document.createElement('ul')
+                playerList.classList.add('scene-players')
+                for (let player of playerIcons){
+                    playerList.appendChild(player);
+                }
+                preset1.appendChild(playerList);
+            }
             contextItems.appendChild(preset1);
         }
     }

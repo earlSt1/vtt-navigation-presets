@@ -114,3 +114,30 @@ li.nav-preset{
 a.scene-presets:hover{
   color:#f0f0e0;
 }
+a.scene-presets > i.fa-bullseye{
+  padding-right:3px;
+}
+.nav-preset > i.fa-bullseye{
+  padding-right:3px;
+}
+.nav-preset ul.scene-players{
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  margin-left:-5px;
+}
+.nav-preset li.scene-player{
+  float: left;
+    height: 14px;
+    width: 14px;
+    margin: 0 2px 0 0;
+    line-height: 12px;
+    font-size: 10px;
+    text-align: center;
+    color: #000;
+    font-weight: 700;
+    background: #97dff4;
+    border: 1px solid #000;
+    border-radius: 8px;
+}
