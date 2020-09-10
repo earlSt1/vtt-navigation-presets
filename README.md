@@ -17,6 +17,7 @@ Deleting a preset will add all navigation items within that preset to the Defaul
 2. Saving open/close state of preset bar
 3. Import scene folder structure to presets
 4. Nested presets
+
 Any issues feel free to ping me on Discord (@Erceron#0370)
 
 ## Contribution
