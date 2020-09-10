@@ -13,6 +13,7 @@ a.scene-presets,a.create-preset{
   flex:0;
   background: #000000;
   float:left;
+  pointer-events:all;
 }
 a.scene-presets > .fa-caret-down,.fa-caret-right{
   padding-right:5px;
@@ -47,6 +48,7 @@ li.nav-preset{
   cursor: pointer;
   width:auto;
   flex:none;
+  pointer-events:all;
 }
 #navpresets-menu.expand-down{
   top: calc(100% - 8px);

@@ -102,11 +102,11 @@ export class NavigationPreset{
     }
 }
 
-function initPresets(){
+async function initPresets(){
     let allPresets = Settings.getPresets();
     let sceneIds = getVisibleNavIds();
     allPresets['default'] = {'sceneList':sceneIds,'titleText':'Default','_id':'default','colorText':'#000000','isActive':true}
-    game.settings.set(mod,'npresets',allPresets).then(function(){return true;});
+    await game.settings.set(mod,'npresets',allPresets);
 }
 function clearExistingElements(){
     let createButton = document.querySelector('a.create-preset')
@@ -494,6 +494,9 @@ async function deletePreset(presetId){
     await game.settings.set(mod,'npresets',allPresets);
     refreshPresets();
 }
+//TODO scene import gui:
+// game.folders.entries.filter(function(e){return e.type==='Scene'}) all scene folders
+// folder.entities = scenes
 export class Settings{
     static registerSettings(){
         game.settings.register(mod, 'npresets', {
@@ -534,7 +537,7 @@ export class Settings{
     }
 }
 
-Hooks.once('setup',async function(){
+Hooks.once('init',async function(){
     let hook = 'renderSceneNavigation';
 
     //Fix for pf1 system
@@ -542,16 +545,16 @@ Hooks.once('setup',async function(){
         hook = 'renderSceneNavigationPF';
     }
     
+    Settings.registerSettings();
+    
         Hooks.on(hook, async function() {
             if (game.user.isGM){
-            Settings.registerSettings();
-            let success = true;
-            if (Object.keys(Settings.getPresets()).length===0){
-                success = success && initPresets();
+                if (Object.keys(Settings.getPresets()).length===0){
+                    await initPresets();
+                }
+                setupPresets();
+                addEventListeners();
             }
-            setupPresets();
-            addEventListeners();
-        }
         });
     
 });
