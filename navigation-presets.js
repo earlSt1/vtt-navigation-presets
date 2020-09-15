@@ -538,16 +538,10 @@ export class Settings{
 }
 
 Hooks.once('init',async function(){
-    let hook = 'renderSceneNavigation';
 
-    //Fix for pf1 system
-    if (game.system.id === 'pf1'){
-        hook = 'renderSceneNavigationPF';
-    }
-    
     Settings.registerSettings();
     
-        Hooks.on(hook, async function() {
+        Hooks.on('renderSceneNavigation', async function() {
             if (game.user.isGM){
                 if (Object.keys(Settings.getPresets()).length===0){
                     await initPresets();
