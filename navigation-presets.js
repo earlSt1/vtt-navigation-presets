@@ -107,13 +107,29 @@ export class NavigationPreset{
 }
 
 async function initPresets(){
-    let allPresets = Settings.getPresets();
+    let allPresets = {};
     let sceneIds = getVisibleNavIds();
     allPresets['default'] = {'sceneList':sceneIds,'titleText':'Default','_id':'default','colorText':'#000000','isActive':true}
     await game.settings.set(mod,'npresets',allPresets);
 }
 async function synchronizePresets(){
     //todo
+    let allPresets = {};
+    let activeScene = game.scenes.entries.filter(s => s.active)[0].id
+    let sceneFolders = game.folders.entries.filter(f => f.type==='Scene');
+    for (let sceneFolder of sceneFolders){
+        if (!Object.keys(allPresets).includes("npresets_"+sceneFolder.id)){
+            let nPresetId = "npresets_"+sceneFolder.id;
+            allPresets[nPresetId] = new NavigationPreset(sceneFolder.name,sceneFolder.data.color)
+            allPresets[nPresetId].uid = nPresetId;
+            allPresets[nPresetId].scenes = sceneFolder.entities.map(e => e.id);
+            if (allPresets[nPresetId].scenes.includes(activeScene)){
+                allPresets[nPresetId].active = true;
+            }
+            allPresets[nPresetId].sceneFolderId = sceneFolder.id;
+        }
+    }
+    await game.settings.set(mod,'npresets',allPresets);
 }
 function clearExistingElements(){
     let createButton = document.querySelector('a.create-preset')
@@ -147,7 +163,10 @@ async function assignNewNavItemsToDefault(existingNavItems){
 }
 async function filterNavItemsToActivePreset(activePreset){
     let existingNavItems = document.querySelectorAll('li.nav-item.scene')
-    await assignNewNavItemsToDefault(existingNavItems);
+    let sync = await Settings.isSynchronizing();
+    if (!sync){
+        await assignNewNavItemsToDefault(existingNavItems);
+    }
     for (let navItem of existingNavItems){
         if (!activePreset.sceneList.includes(navItem.getAttribute('data-scene-id'))){
             navItem.style.display='none';
@@ -156,7 +175,7 @@ async function filterNavItemsToActivePreset(activePreset){
         }
     }
 }
-function setupPresets(){
+function setupPresets(sync){
     let allPresets = Settings.getPresets();
     let activePreset = allPresets[Settings.getActivePresetId()]
     clearExistingElements()
@@ -186,31 +205,34 @@ function setupPresets(){
     let presetMenu = document.createElement('nav');
     presetMenu.classList.add('expand-down');
     presetMenu.id='navpresets-menu'
+    //let sync = await Settings.isSynchronizing();
     for (let preset of alphaSortPresets(allPresets)){
-        if (preset._id != activePreset._id){
-            let preset1 = document.createElement('li');
-            preset1.classList.add('nav-preset');
-            if (presetHasActiveScene(preset)){
-                let bullseye = document.createElement('i');
-                bullseye.classList.add('fas','fa-bullseye');
-                preset1.innerHTML=bullseye.outerHTML+preset.titleText;    
-            }else{
-                preset1.innerHTML=preset.titleText;
-            }
-            preset1.style.backgroundColor=preset.colorText;
-            preset1.setAttribute('data-npreset-id',preset._id);
-            
-            //Player icons
-            let playerIcons = generatePlayerIcons(preset);
-            if (playerIcons.length>0){
-                let playerList = document.createElement('ul')
-                playerList.classList.add('scene-players')
-                for (let player of playerIcons){
-                    playerList.appendChild(player);
+        if ((sync && preset.sceneList.length>0) || !sync){
+            if (preset._id != activePreset._id){
+                let preset1 = document.createElement('li');
+                preset1.classList.add('nav-preset');
+                if (presetHasActiveScene(preset)){
+                    let bullseye = document.createElement('i');
+                    bullseye.classList.add('fas','fa-bullseye');
+                    preset1.innerHTML=bullseye.outerHTML+preset.titleText;    
+                }else{
+                    preset1.innerHTML=preset.titleText;
                 }
-                preset1.appendChild(playerList);
+                preset1.style.backgroundColor=preset.colorText;
+                preset1.setAttribute('data-npreset-id',preset._id);
+                
+                //Player icons
+                let playerIcons = generatePlayerIcons(preset);
+                if (playerIcons.length>0){
+                    let playerList = document.createElement('ul')
+                    playerList.classList.add('scene-players')
+                    for (let player of playerIcons){
+                        playerList.appendChild(player);
+                    }
+                    preset1.appendChild(playerList);
+                }
+                contextItems.appendChild(preset1);
             }
-            contextItems.appendChild(preset1);
         }
     }
     presetMenu.appendChild(contextItems);
@@ -220,20 +242,21 @@ function setupPresets(){
     navbar.insertAdjacentElement('afterbegin',dropdown);
     navbar.insertAdjacentElement('afterbegin',presetMenu);
     //Create button
-    let createButton = document.createElement('a');
-    createButton.classList.add('create-preset');
-    createButton.title='Create Preset';
-    createButton.style.backgroundColor='rgba(0, 0, 0, 0.5)'
-    let createIcon = document.createElement('i');
-    createIcon.classList.add('fas','fa-plus');
+    if (!sync){
+        let createButton = document.createElement('a');
+        createButton.classList.add('create-preset');
+        createButton.title='Create Preset';
+        createButton.style.backgroundColor='rgba(0, 0, 0, 0.5)'
+        let createIcon = document.createElement('i');
+        createIcon.classList.add('fas','fa-plus');
 
-    createButton.innerHTML=createIcon.outerHTML;
-    navbar.insertAdjacentElement('afterbegin',createButton);
-    createButton.addEventListener('click',function(){
-        let newFolder = new NavigationPreset('New Preset','');
-        new NavigationPresetEditConfig(newFolder).render(true);
-    })
-    
+        createButton.innerHTML=createIcon.outerHTML;
+        navbar.insertAdjacentElement('afterbegin',createButton);
+        createButton.addEventListener('click',function(){
+            let newFolder = new NavigationPreset('New Preset','');
+            new NavigationPresetEditConfig(newFolder).render(true);
+        })
+    }
     filterNavItemsToActivePreset(activePreset)
 }
 function createContextMenu(parent){
@@ -313,7 +336,7 @@ function closeContextMenu(){
     if (contextMenu!=null)
         contextMenu.parentNode.removeChild(contextMenu);
 }
-function addEventListeners(){
+function addEventListeners(sync){
     let dropdown = document.querySelector('a.scene-presets')
     dropdown.addEventListener('click',function(ev){
         ev.stopPropagation();
@@ -330,26 +353,33 @@ function addEventListeners(){
             menu.style.display='none';
         }
     });
-    dropdown.addEventListener('contextmenu',function(ev){
-        ev.stopPropagation();
-        ev.preventDefault();
-        createContextMenu(dropdown);   
-    });
+    //let sync = await Settings.isSynchronizing();
+   
+    if (!sync){
+        dropdown.addEventListener('contextmenu',function(ev){
+            ev.stopPropagation();
+            ev.preventDefault();
+            createContextMenu(dropdown);   
+        });
+    }   
     let otherPresets = document.querySelectorAll('li.nav-preset');
     for (let preset of otherPresets){
         preset.addEventListener('click',async function(ev){
             ev.stopPropagation();
             if (!isEventRightClick(ev)){
-                await Settings.activatePreset(preset.getAttribute('data-npreset-id'));
+                await Settings.activatePreset(preset.getAttribute('data-npreset-id'),sync);
                 refreshPresets();
             }
         });
-        preset.addEventListener('contextmenu',function(ev){
-            ev.stopPropagation();
-            ev.preventDefault();
-            createContextMenu(preset);
-        });
+        if (!sync){
+            preset.addEventListener('contextmenu',function(ev){
+                ev.stopPropagation();
+                ev.preventDefault();
+                createContextMenu(preset);
+            });
+        }
     }
+    
 }
 class NavigationPresetEditConfig extends FormApplication {
     static get defaultOptions() {
@@ -449,9 +479,10 @@ class NavigationPresetEditConfig extends FormApplication {
     }
 }
 
-function refreshPresets(){  
-    setupPresets();
-    addEventListeners();
+async function refreshPresets(){  
+    let sync = await Settings.isSynchronizing()
+    setupPresets(sync);
+    addEventListeners(sync);
 }
 
 async function updatePresets(scenesToAdd,scenesToRemove,preset){
@@ -511,7 +542,17 @@ export class Settings{
             config: false,
             type: Object,
             default:{}
-        });     
+        });
+        game.settings.register(mod,'sync',{
+            name: 'Synchronize with Scene Directory',
+            hint: 'Presets will automatically create based on scene directory contents. WARNING will delete ALL EXISTING PRESETS',
+            type: Boolean,
+            scope: 'world',
+            restricted: true,
+            config:true,
+            default:false,
+            onChange: value => {Settings.toggleSync(value)}
+        });
     }
     static updatePreset(presetData){
         let existingPresets = game.settings.get(mod,'npresets');
@@ -533,14 +574,41 @@ export class Settings{
         }
         return 'default'
     }
-    static async  activatePreset(newPresetId){
+    static async  activatePreset(newPresetId,sync){
         let currentPresetId = Settings.getActivePresetId();
         let allPresets = Settings.getPresets()
         if (currentPresetId != newPresetId){
             allPresets[currentPresetId].isActive=false;
             allPresets[newPresetId].isActive=true;
         }
+        if (sync){
+            for (let sceneFolder of document.querySelectorAll('#scenes .directory-item.folder')){
+                sceneFolder.classList.add('collapsed')
+            }
+            let currentFolderId = allPresets[newPresetId].sceneFolderId
+            let currentFolderElement = document.querySelector("#scenes .directory-item.folder[data-folder-id='"+allPresets[newPresetId].sceneFolderId+"']")
+            let currentFolder = game.folders.get(currentFolderId);
+            currentFolderElement.classList.remove('collapsed')
+            while (currentFolder.parent != null){
+                currentFolder = currentFolder.parent;
+                document.querySelector("#scenes .directory-item.folder[data-folder-id='"+currentFolder.id+"']").classList.remove('collapsed');
+            }
+            
+        }
         await game.settings.set(mod,'npresets',allPresets);
+    }
+    static isSynchronizing(){
+        return game.settings.get(mod,'sync');
+    }
+    static async toggleSync(newSync){
+        await game.settings.set(mod,'npresets',{});
+        if (newSync){
+            await synchronizePresets();
+        }else{
+            await initPresets();
+        }
+        setupPresets(newSync);
+        addEventListeners(newSync);
     }
 }
 
@@ -550,12 +618,17 @@ Hooks.once('init',async function(){
     
         Hooks.on('renderSceneNavigation', async function() {
             if (game.user.isGM){
-                if (Object.keys(Settings.getPresets()).length===0){
-                    await initPresets();
+                // 
+                let sync = await Settings.isSynchronizing()
+                if (sync){
+                    await synchronizePresets();
+                }else{
+                    if (Object.keys(Settings.getPresets()).length===0){
+                        await initPresets();
+                    }
                 }
-                synchronizePresets();
-                setupPresets();
-                addEventListeners();
+                setupPresets(sync);
+                addEventListeners(sync);
             }
         });
     
