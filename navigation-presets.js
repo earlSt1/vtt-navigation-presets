@@ -177,7 +177,17 @@ async function filterNavItemsToActivePreset(activePreset){
 }
 function setupPresets(sync){
     let allPresets = Settings.getPresets();
-    let activePreset = allPresets[Settings.getActivePresetId()]
+
+    let activePreset = null;
+    if (sync){
+        if (Settings.getActivePresetId()!='default'){
+            activePreset = allPresets[Settings.getActivePresetId()]
+        }else{
+            activePreset = Object.values(allPresets)[0]
+        }
+    }else{
+        activePreset = allPresets[Settings.getActivePresetId()]
+    }
     clearExistingElements()
     
     let navbar = document.querySelector('ol#scene-list');
@@ -192,7 +202,7 @@ function setupPresets(sync){
     //     bullseye.classList.add('fas','fa-bullseye');
     //     dropdown.innerHTML=caretIcon.outerHTML+bullseye.outerHTML+activePreset.titleText;    
     // }else{
-        dropdown.innerHTML=caretIcon.outerHTML+activePreset.titleText;
+    dropdown.innerHTML=caretIcon.outerHTML+activePreset.titleText;
     //}
     dropdown.style.backgroundColor=activePreset.colorText
     dropdown.setAttribute('data-npreset-id',activePreset._id);
