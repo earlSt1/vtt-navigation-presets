@@ -79,6 +79,7 @@ export class NavigationPreset{
         this.scenes = [];
         this.uid=generateRandomPresetName();
         this.active = false;
+        this.sceneFolder = null;
     }
     initFromExisting(existing){
         this.title = existing['titleText'];
@@ -86,6 +87,7 @@ export class NavigationPreset{
         this.scenes = existing['sceneList'];
         this.uid = existing['_id'];
         this.active=existing['isActive'];
+        this.sceneFolder=existing["sceneFolderId"]
     }
     get uid(){return this._id;}
     set uid(id){this._id=id;}
@@ -97,6 +99,8 @@ export class NavigationPreset{
     set scenes(scenes){this.sceneList = scenes;}
     get active(){return this.isActive};
     set active(a){this.isActive=a;}
+    get sceneFolder(){return this.sceneFolderId}
+    set sceneFolder(sf){this.sceneFolderId=sf}
     addScene(scene){
         this.scenes.push(scene);
     }
@@ -107,6 +111,9 @@ async function initPresets(){
     let sceneIds = getVisibleNavIds();
     allPresets['default'] = {'sceneList':sceneIds,'titleText':'Default','_id':'default','colorText':'#000000','isActive':true}
     await game.settings.set(mod,'npresets',allPresets);
+}
+async function synchronizePresets(){
+    //todo
 }
 function clearExistingElements(){
     let createButton = document.querySelector('a.create-preset')
@@ -546,6 +553,7 @@ Hooks.once('init',async function(){
                 if (Object.keys(Settings.getPresets()).length===0){
                     await initPresets();
                 }
+                synchronizePresets();
                 setupPresets();
                 addEventListeners();
             }

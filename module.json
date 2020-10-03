@@ -1,7 +1,7 @@
 {
     "name": "navigation-presets",
     "title": "Navigation Presets",
-    "description": "Configurable presets for navigation items",
+    "description": "Configurable presets for navigation items - SceneSync branch",
     "author": "Erceron",
     "version": "1.0.4",
     "minimumCoreVersion": "0.6.5",
@@ -11,6 +11,6 @@
       ],
     "styles": ["./styles.css"],
     "url": "https://github.com/earlSt1/vtt-navigation-presets",
-    "manifest": "https://raw.githubusercontent.com/earlSt1/vtt-navigation-presets/master/module.json",
-    "download": "https://github.com/earlSt1/vtt-navigation-presets/archive/1.0.4.zip"
+    "manifest": "https://raw.githubusercontent.com/earlSt1/vtt-navigation-presets/scene-sync/module.json",
+    "download": "https://github.com/earlSt1/vtt-navigation-presets/archive/scene-sync.zip"
   }
