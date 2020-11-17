@@ -1,3 +1,5 @@
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/earlSt1/vtt-navigation-presets) ![GitHub issues](https://img.shields.io/github/issues/earlSt1/vtt-navigation-presets) ![GitHub all releases](https://img.shields.io/github/downloads/earlSt1/vtt-navigation-presets/total)
+
 # Navigation Presets
 
 This is a module for FoundryVTT which adds configurable presets to the navigation bar
