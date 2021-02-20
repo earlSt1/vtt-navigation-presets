@@ -537,8 +537,24 @@ export class Settings{
     }
 }
 
-Hooks.once('init',async function(){
+class SceneNavigationPresets extends SceneNavigation{
+    constructor(...args){
+        super(args);
+    }
+    render (force, context={})  {
+        // Dont refresh if not required
+        const updateKeys = ["name", "permission", "permission.default", "active", "navigation", "navName", "navOrder"]
+        if (context.action === 'update' && !context.data.some(d => updateKeys.some(updateKey => Object.keys(d).includes(updateKey)))) return;
+        return super.render(this,force, context)
+    }
+}
 
+Hooks.once('init',async function(){
+    Hooks.on('ready',async function(){
+        ui.nav = new SceneNavigationPresets();
+        game.scenes.apps[0] = ui.nav;
+        game.scenes.apps.pop()
+    })
     Settings.registerSettings();
     
         Hooks.on('renderSceneNavigation', async function() {
