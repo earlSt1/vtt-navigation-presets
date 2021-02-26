@@ -140,7 +140,8 @@ async function assignNewNavItemsToDefault(existingNavItems){
 }
 async function filterNavItemsToActivePreset(activePreset){
     let existingNavItems = document.querySelectorAll('li.nav-item.scene')
-    await assignNewNavItemsToDefault(existingNavItems);
+    if (game.user.isGM)
+        await assignNewNavItemsToDefault(existingNavItems);
     for (let navItem of existingNavItems){
         if (!activePreset.sceneList.includes(navItem.getAttribute('data-scene-id'))){
             navItem.style.display='none';
@@ -213,19 +214,21 @@ function setupPresets(){
     navbar.insertAdjacentElement('afterbegin',dropdown);
     navbar.insertAdjacentElement('afterbegin',presetMenu);
     //Create button
-    let createButton = document.createElement('a');
-    createButton.classList.add('create-preset');
-    createButton.title='Create Preset';
-    createButton.style.backgroundColor='rgba(0, 0, 0, 0.5)'
-    let createIcon = document.createElement('i');
-    createIcon.classList.add('fas','fa-plus');
+    if (game.user.isGM){
+        let createButton = document.createElement('a');
+        createButton.classList.add('create-preset');
+        createButton.title='Create Preset';
+        createButton.style.backgroundColor='rgba(0, 0, 0, 0.5)'
+        let createIcon = document.createElement('i');
+        createIcon.classList.add('fas','fa-plus');
 
-    createButton.innerHTML=createIcon.outerHTML;
-    navbar.insertAdjacentElement('afterbegin',createButton);
-    createButton.addEventListener('click',function(){
-        let newFolder = new NavigationPreset('New Preset','');
-        new NavigationPresetEditConfig(newFolder).render(true);
-    })
+        createButton.innerHTML=createIcon.outerHTML;
+        navbar.insertAdjacentElement('afterbegin',createButton);
+        createButton.addEventListener('click',function(){
+            let newFolder = new NavigationPreset('New Preset','');
+            new NavigationPresetEditConfig(newFolder).render(true);
+        })
+    }
     
     filterNavItemsToActivePreset(activePreset)
 }
@@ -323,11 +326,13 @@ function addEventListeners(){
             menu.style.display='none';
         }
     });
-    dropdown.addEventListener('contextmenu',function(ev){
-        ev.stopPropagation();
-        ev.preventDefault();
-        createContextMenu(dropdown);   
-    });
+    if (game.user.isGM){
+        dropdown.addEventListener('contextmenu',function(ev){
+            ev.stopPropagation();
+            ev.preventDefault();
+            createContextMenu(dropdown);   
+        });
+    }
     let otherPresets = document.querySelectorAll('li.nav-preset');
     for (let preset of otherPresets){
         preset.addEventListener('click',async function(ev){
@@ -337,12 +342,15 @@ function addEventListeners(){
                 refreshPresets();
             }
         });
-        preset.addEventListener('contextmenu',function(ev){
-            ev.stopPropagation();
-            ev.preventDefault();
-            createContextMenu(preset);
-        });
+        if (game.user.isGM){
+            preset.addEventListener('contextmenu',function(ev){
+                ev.stopPropagation();
+                ev.preventDefault();
+                createContextMenu(preset);
+            });
+        }
     }
+    
 }
 class NavigationPresetEditConfig extends FormApplication {
     static get defaultOptions() {
@@ -505,6 +513,20 @@ export class Settings{
             type: Object,
             default:{}
         });     
+        game.settings.register(mod,'active-preset',{
+            scope:'client',
+            config:false,
+            type:String,
+            default:'default'
+        });
+        game.settings.register(mod,'player-enabled',{
+            scope:'world',
+            config:true,
+            type:Boolean,
+            default:false,
+            name: "Enable presets for players",
+            hint: "Players will see the presets and will be able to open/close them, but wont be able to create, edit or delete them"
+        });
     }
     static updatePreset(presetData){
         let existingPresets = game.settings.get(mod,'npresets');
@@ -518,22 +540,23 @@ export class Settings{
         return game.settings.get(mod,'npresets');
     }
     static getActivePresetId(){
-        let allPresets = Settings.getPresets();
-        for (let preset of Object.keys(allPresets)){
-            if (allPresets[preset].isActive === true){
-                return preset
-            }
-        }
-        return 'default'
+        // let allPresets = Settings.getPresets();
+        // for (let preset of Object.keys(allPresets)){
+        //     if (allPresets[preset].isActive === true){
+        //         return preset
+        //     }
+        // }
+        // return 'default'
+        return game.settings.get(mod,'active-preset');
     }
-    static async  activatePreset(newPresetId){
-        let currentPresetId = Settings.getActivePresetId();
-        let allPresets = Settings.getPresets()
-        if (currentPresetId != newPresetId){
-            allPresets[currentPresetId].isActive=false;
-            allPresets[newPresetId].isActive=true;
-        }
-        await game.settings.set(mod,'npresets',allPresets);
+    static async activatePreset(newPresetId){
+        // let currentPresetId = Settings.getActivePresetId();
+        // let allPresets = Settings.getPresets()
+        // if (currentPresetId != newPresetId){
+        //     allPresets[currentPresetId].isActive=false;
+        //     allPresets[newPresetId].isActive=true;
+        // }
+        await game.settings.set(mod,'active-preset',newPresetId);
     }
 }
 
@@ -558,7 +581,7 @@ Hooks.once('init',async function(){
     Settings.registerSettings();
     
         Hooks.on('renderSceneNavigation', async function() {
-            if (game.user.isGM){
+            if (game.user.isGM || game.settings.get(mod,'player-enabled')){
                 if (Object.keys(Settings.getPresets()).length===0){
                     await initPresets();
                 }
