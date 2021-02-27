@@ -537,7 +537,19 @@ export class Settings{
         game.settings.set(mod,'npresets',presets);
     }
     static getPresets(){
-        return game.settings.get(mod,'npresets');
+        let allPresets = game.settings.get(mod,'npresets');
+        if (game.user.isGM){
+            return allPresets;
+        } else {
+            return Object.keys(allPresets).filter(
+                x => allPresets[x].sceneList.some(
+                    y => game.scenes.get(y).data.permission.default != 0 
+                    || game.scenes.get(y).active
+                )
+            ).reduce((obj,key) => {
+                obj[key]=allPresets[key];
+                return obj},{});
+        }
     }
     static getActivePresetId(){
         // let allPresets = Settings.getPresets();
