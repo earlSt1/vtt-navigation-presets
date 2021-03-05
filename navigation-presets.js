@@ -151,6 +151,7 @@ async function filterNavItemsToActivePreset(activePreset){
     }
 }
 function setupPresets(){
+    Settings.checkActivePresetExists();
     let allPresets = Settings.getPresets();
     let activePreset = allPresets[Settings.getActivePresetId()]
     clearExistingElements()
@@ -569,6 +570,14 @@ export class Settings{
         //     allPresets[newPresetId].isActive=true;
         // }
         await game.settings.set(mod,'active-preset',newPresetId);
+    }
+    static async checkActivePresetExists(){
+        let allPresets = game.settings.get(mod,'npresets');
+        let activePreset = game.settings.get(mod,'active-preset');
+        if (!Object.keys(allPresets).includes(activePreset)){
+            console.log(modName+' | Active preset not longer exists, switching to default')
+            await game.settings.set(mod,'active-preset','default');
+        }
     }
 }
 
