@@ -106,7 +106,13 @@ async function initPresets(){
     let allPresets = Settings.getPresets();
     let sceneIds = getVisibleNavIds();
     allPresets['default'] = {'sceneList':sceneIds,'titleText':'Default','_id':'default','colorText':'#000000','isActive':true}
-    await game.settings.set(mod,'npresets',allPresets);
+    if (game.ready)
+        await game.settings.set(mod,'npresets',allPresets);
+    else
+        Hooks.once('ready',async function(){
+            await game.settings.set(mod,'npresets',allPresets);
+        })
+
 }
 function clearExistingElements(){
     let createButton = document.querySelector('a.create-preset')
@@ -135,8 +141,12 @@ async function assignNewNavItemsToDefault(existingNavItems){
         }
     }
     allPresets['default'].sceneList = allPresets['default'].sceneList.concat(unassigned)
-    
-    await game.settings.set(mod,'npresets',allPresets)
+    if (game.ready)
+        await game.settings.set(mod,'npresets',allPresets)
+    else
+        Hooks.once('ready',async function(){
+            await game.settings.set(mod,'npresets',allPresets);
+        })
 }
 async function filterNavItemsToActivePreset(activePreset){
     let existingNavItems = document.querySelectorAll('li.nav-item.scene')
@@ -163,13 +173,8 @@ function setupPresets(){
     dropdown.classList.add('scene-presets');
     let caretIcon = document.createElement('i');
     caretIcon.classList.add('fas','fa-caret-right');
-    // if (presetHasActiveScene(activePreset)){
-    //     let bullseye = document.createElement('i');
-    //     bullseye.classList.add('fas','fa-bullseye');
-    //     dropdown.innerHTML=caretIcon.outerHTML+bullseye.outerHTML+activePreset.titleText;    
-    // }else{
-        dropdown.innerHTML=caretIcon.outerHTML+activePreset.titleText;
-    //}
+    
+    dropdown.innerHTML=caretIcon.outerHTML+activePreset.titleText;
     dropdown.style.backgroundColor=activePreset.colorText
     dropdown.setAttribute('data-npreset-id',activePreset._id);
 
@@ -553,22 +558,9 @@ export class Settings{
         }
     }
     static getActivePresetId(){
-        // let allPresets = Settings.getPresets();
-        // for (let preset of Object.keys(allPresets)){
-        //     if (allPresets[preset].isActive === true){
-        //         return preset
-        //     }
-        // }
-        // return 'default'
         return game.settings.get(mod,'active-preset');
     }
     static async activatePreset(newPresetId){
-        // let currentPresetId = Settings.getActivePresetId();
-        // let allPresets = Settings.getPresets()
-        // if (currentPresetId != newPresetId){
-        //     allPresets[currentPresetId].isActive=false;
-        //     allPresets[newPresetId].isActive=true;
-        // }
         await game.settings.set(mod,'active-preset',newPresetId);
     }
     static async checkActivePresetExists(){
@@ -601,14 +593,14 @@ Hooks.once('init',async function(){
     })
     Settings.registerSettings();
     
-        Hooks.on('renderSceneNavigation', async function() {
-            if (game.user.isGM || game.settings.get(mod,'player-enabled')){
-                if (Object.keys(Settings.getPresets()).length===0){
-                    await initPresets();
-                }
-                setupPresets();
-                addEventListeners();
+    Hooks.on('renderSceneNavigation', async function() {
+        if (game.user.isGM || game.settings.get(mod,'player-enabled')){
+            if (Object.keys(Settings.getPresets()).length===0){
+                await initPresets();
             }
-        });
+            setupPresets();
+            addEventListeners();
+        }
+    });
     
 });
