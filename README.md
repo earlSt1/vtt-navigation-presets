@@ -2,7 +2,7 @@
 
 # Navigation Presets
 
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/earlSt1/vtt-navigation-presets) ![GitHub issues](https://img.shields.io/github/issues/earlSt1/vtt-navigation-presets) ![GitHub all releases](https://img.shields.io/github/downloads/earlSt1/vtt-navigation-presets/total) ![Forge Installs](https://img.shields.io/badge/dynamic/json?label=Forge%20Installs&query=package.installs&suffix=%25&url=https%3A%2F%2Fforge-vtt.com%2Fapi%2Fbazaar%2Fpackage%2Fnavigation-presets)
+<a href='https://ko-fi.com/T6T44L01B' target='_blank'><img height='35' style='border:0px;height:35px;' src='https://cdn.ko-fi.com/cdn/kofi5.png?v=2' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>  ![GitHub release (latest by date)](https://img.shields.io/github/v/release/earlSt1/vtt-navigation-presets) ![GitHub issues](https://img.shields.io/github/issues/earlSt1/vtt-navigation-presets) ![GitHub all releases](https://img.shields.io/github/downloads/earlSt1/vtt-navigation-presets/total) ![Forge Installs](https://img.shields.io/badge/dynamic/json?label=Forge%20Installs&query=package.installs&suffix=%25&url=https%3A%2F%2Fforge-vtt.com%2Fapi%2Fbazaar%2Fpackage%2Fnavigation-presets)
 
 This is a module for FoundryVTT which adds configurable presets to the navigation bar
 
