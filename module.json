@@ -5,7 +5,7 @@
     "author": "Erceron",
     "version": "1.0.7",
     "minimumCoreVersion": "0.6.5",
-    "compatibleCoreVersion":"0.8.2",
+    "compatibleCoreVersion":"0.8.3",
     "esmodules": [
         "./navigation-presets.js"
       ],
