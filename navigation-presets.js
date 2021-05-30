@@ -187,6 +187,7 @@ function setupPresets(){
     presetMenu.classList.add('expand-down');
     presetMenu.id='navpresets-menu'
     for (let preset of alphaSortPresets(allPresets)){
+        if (preset._id === 'default' && preset.sceneList?.length === 0) continue;
         if (preset._id != activePreset._id){
             let preset1 = document.createElement('li');
             preset1.classList.add('nav-preset');
@@ -523,7 +524,7 @@ export class Settings{
             scope:'client',
             config:false,
             type:String,
-            default:'default'
+            default:null
         });
         game.settings.register(mod,'player-enabled',{
             scope:'world',
@@ -558,7 +559,8 @@ export class Settings{
         }
     }
     static getActivePresetId(){
-        return game.settings.get(mod,'active-preset');
+        let result = game.settings.get(mod,'active-preset');
+        return result ? result : Object.keys(Settings.getPresets())[0];
     }
     static async activatePreset(newPresetId){
         await game.settings.set(mod,'active-preset',newPresetId);
