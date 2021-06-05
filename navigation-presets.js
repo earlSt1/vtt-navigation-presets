@@ -566,11 +566,11 @@ export class Settings{
         await game.settings.set(mod,'active-preset',newPresetId);
     }
     static async checkActivePresetExists(){
-        let allPresets = game.settings.get(mod,'npresets');
+        let allPresets = Settings.getPresets();
         let activePreset = game.settings.get(mod,'active-preset');
         if (!Object.keys(allPresets).includes(activePreset)){
             console.log(modName+' | Active preset not longer exists, switching to default')
-            await game.settings.set(mod,'active-preset','default');
+            await game.settings.set(mod,'active-preset',Object.keys(Settings.getPresets())[0]);
         }
     }
 }
