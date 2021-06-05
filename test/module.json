@@ -3,9 +3,9 @@
     "title": "Navigation Presets",
     "description": "Configurable presets for navigation items",
     "author": "Erceron",
-    "version": "1.0.4",
-    "minimumCoreVersion": "0.6.5",
-    "compatibleCoreVersion":"0.6.6",
+    "version": "1.0.9",
+    "minimumCoreVersion": "0.8.2",
+    "compatibleCoreVersion":"0.8.6",
     "esmodules": [
         "./navigation-presets.js"
       ],
