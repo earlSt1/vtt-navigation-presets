@@ -3,14 +3,14 @@
     "title": "Navigation Presets",
     "description": "Configurable presets for navigation items",
     "author": "Erceron",
-    "version": "1.0.10",
+    "version": "1.0.11",
     "minimumCoreVersion": "0.6.5",
-    "compatibleCoreVersion":"0.8.6",
+    "compatibleCoreVersion":"0.8.8",
     "esmodules": [
         "./navigation-presets.js"
       ],
     "styles": ["./styles.css"],
     "url": "https://github.com/earlSt1/vtt-navigation-presets",
     "manifest": "https://raw.githubusercontent.com/earlSt1/vtt-navigation-presets/master/module.json",
-    "download": "https://github.com/earlSt1/vtt-navigation-presets/releases/download/1.0.10/1.0.10.zip"
+    "download": "https://github.com/earlSt1/vtt-navigation-presets/releases/download/1.0.11/1.0.11.zip"
   }
