@@ -534,6 +534,14 @@ export class Settings{
             name: "Enable presets for players",
             hint: "Players will see the presets and will be able to open/close them, but wont be able to create, edit or delete them"
         });
+        game.settings.register(mod,'truncate-name',{
+            scope:'world',
+            config:true,
+            type:Boolean,
+            default:true,
+            name:'Truncate Scene Names',
+            hint: 'If disabled, scene name will not be truncated to 32 characters'
+        })
     }
     static updatePreset(presetData){
         let existingPresets = game.settings.get(mod,'npresets');
@@ -579,23 +587,44 @@ class SceneNavigationPresets extends SceneNavigation{
     constructor(...args){
         super(args);
     }
-    render (force, context={})  {
-        // Dont refresh if not required
-        const updateKeys = ["name", "permission", "permission.default", "active", "navigation", "navName", "navOrder"]
-        if (context.action === 'update' && !context.data.some(d => updateKeys.some(updateKey => Object.keys(d).includes(updateKey)))) return;
-        return super.render(this,force, context)
+      /** @override */
+	getData(options) {
+        let truncateName = game.settings.get(mod,'truncate-name');
+        // Modify Scene data
+        const scenes = this.scenes.map(scene => {
+            let data = scene.data.toObject(false);
+            let users = game.users.filter(u => u.active && (u.viewedScene === scene.id));
+            if(!truncateName)
+                data.name = data.navName || data.name;
+            else
+                data.name = TextEditor.truncateText(data.navName || data.name, {maxLength: 32});
+            data.users = users.map(u => { return {letter: u.name[0], color: u.data.color} });
+            data.visible = (game.user.isGM || scene.isOwner || scene.active);
+            data.css = [
+            scene.isView ? "view" : null,
+            scene.active ? "active" : null,
+            data.permission.default === 0 ? "gm" : null
+        ].filter(c => !!c).join(" ");
+            return data;
+        });
+        return {
+            collapsed: this._collapsed,
+            scenes: scenes
+          }
     }
 }
 
 Hooks.once('init',async function(){
-    Hooks.on('ready',async function(){
-        ui.nav = new SceneNavigationPresets();
-        game.scenes.apps[0] = ui.nav;
-        game.scenes.apps.pop()
+    
+    Hooks.on('setup',async function(){
+        CONFIG.ui.nav = SceneNavigationPresets;
     })
     Settings.registerSettings();
+    Hooks.on('renderSceneNavigation',function(){
+        Hooks.call('renderSceneNavigationPresets');
+    })
     
-    Hooks.on('renderSceneNavigation', async function() {
+    Hooks.on('renderSceneNavigationPresets', async function() {
         if (game.user.isGM || game.settings.get(mod,'player-enabled')){
             if (Object.keys(Settings.getPresets()).length===0){
                 await initPresets();
