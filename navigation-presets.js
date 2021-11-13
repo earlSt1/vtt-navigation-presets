@@ -558,8 +558,8 @@ export class Settings{
         } else {
             return Object.keys(allPresets).filter(
                 x => allPresets[x].sceneList.some(
-                    y => game.scenes.get(y).data.permission.default != 0 
-                    || game.scenes.get(y).active
+                    y => game.scenes.get(y)?.data.permission.default != 0 
+                    || game.scenes.get(y)?.active
                 )
             ).reduce((obj,key) => {
                 obj[key]=allPresets[key];
