@@ -31,7 +31,6 @@ a.scene-presets > nav > ol > li:hover{
   height: max-content;
   min-width: 150px;
   position: absolute;
-  left: 0;
   background: none;
   color: #EEE;
   z-index: 31;
@@ -51,7 +50,7 @@ li.nav-preset{
   pointer-events:all;
 }
 #navpresets-menu.expand-down{
-  top: calc(100% - 8px);
+  top: 45px;
 }
 #navpresets-menu .context-item{
   list-style: none;
@@ -65,7 +64,7 @@ li.nav-preset{
   margin-top:-7px
 }
 #preset-context-menu.expand-down{
-  top: calc(100% + 2px);
+  top: 45px;
 }
 #preset-context-menu{
   width: 32px;
