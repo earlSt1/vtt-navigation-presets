@@ -558,7 +558,7 @@ export class Settings{
         } else {
             return Object.keys(allPresets).filter(
                 x => allPresets[x].sceneList.some(
-                    y => game.scenes.get(y)?.data.permission.default != 0 
+                    y => game.scenes.get(y)?.ownership.default != 0 
                     || game.scenes.get(y)?.active
                 )
             ).reduce((obj,key) => {
@@ -592,18 +592,18 @@ class SceneNavigationPresets extends SceneNavigation{
         let truncateName = game.settings.get(mod,'truncate-name');
         // Modify Scene data
         const scenes = this.scenes.map(scene => {
-            let data = scene.data.toObject(false);
+            let data = scene.toObject(false);
             let users = game.users.filter(u => u.active && (u.viewedScene === scene.id));
             if(!truncateName)
                 data.name = data.navName || data.name;
             else
                 data.name = TextEditor.truncateText(data.navName || data.name, {maxLength: 32});
-            data.users = users.map(u => { return {letter: u.name[0], color: u.data.color} });
+            data.users = users.map(u => { return {letter: u.name[0], color: u.color} });
             data.visible = (game.user.isGM || scene.isOwner || scene.active);
             data.css = [
             scene.isView ? "view" : null,
             scene.active ? "active" : null,
-            data.permission.default === 0 ? "gm" : null
+            data.ownership.default === 0 ? "gm" : null
         ].filter(c => !!c).join(" ");
             return data;
         });

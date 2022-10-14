@@ -50,14 +50,14 @@
             {{#each ascenes}}
                 <div class='flexrow scene-select scene-assigned'>
                     <input type="checkbox" name="{{this.id}}" {{#ifInPreset this.id ../preset.sceneList}} checked {{/ifInPreset}}/>
-                    <label for="{{this.id}}" style='margin-top:2px'>{{this.data.name}} {{#if this.active}}[ACTIVE]{{/if}}</label>
+                    <label for="{{this.id}}" style='margin-top:2px'>{{this.name}} {{#if this.active}}[ACTIVE]{{/if}}</label>
                 </div>
             {{/each}}
             <h2>Unassigned</h2>
             {{#each uscenes}}
                 <div class='flexrow scene-select scene-unassigned'>
                     <input type="checkbox" name="{{this.id}}"/>
-                    <label for="{{this.id}}" style='margin-top:2px;color:#666;'><i>{{this.data.name}}</i></label>
+                    <label for="{{this.id}}" style='margin-top:2px;color:#666;'><i>{{this.name}}</i></label>
                 </div>
             {{/each}}
         </div>
