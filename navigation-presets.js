@@ -37,32 +37,7 @@ function alphaSortPresets(presets) {
     });
     return sorted;
 }
-function generatePlayerIcons(preset) {
-    let playerIconList = [];
-    for (let scene of document.querySelectorAll("li.scene.nav-item")) {
-        if (preset.sceneList.includes(scene.getAttribute("data-scene-id"))) {
-            let players = scene.querySelectorAll(".scene-players > .scene-player");
-            if (players != null) {
-                for (let player of players) {
-                    let newPlayer = player.cloneNode();
-                    newPlayer.innerText = player.innerText;
-                    playerIconList.push(newPlayer);
-                }
-            }
-        }
-    }
-    return playerIconList;
-}
-function presetHasActiveScene(preset) {
-    for (let scene of document.querySelectorAll("li.scene.nav-item")) {
-        if (preset.sceneList.includes(scene.getAttribute("data-scene-id"))) {
-            if (scene.querySelector("i.fa-bullseye") != null) {
-                return true;
-            }
-        }
-    }
-    return false;
-}
+
 export class NavigationPreset {
     constructor(title, color) {
         this.title = title;
@@ -113,256 +88,6 @@ export class NavigationPreset {
     }
 }
 
-async function initPresets() {
-    let allPresets = Settings.getPresets();
-    let sceneIds = getVisibleNavIds();
-    allPresets["default"] = { sceneList: sceneIds, titleText: "Default", _id: "default", colorText: "#000000", isActive: true };
-    if (game.ready) await game.settings.set(mod, "npresets", allPresets);
-    else
-        Hooks.once("ready", async function () {
-            await game.settings.set(mod, "npresets", allPresets);
-        });
-}
-function clearExistingElements() {
-    let createButton = document.querySelector("a.create-preset");
-    let navMenu = document.querySelector("nav#navpresets-menu");
-    let activePreset = document.querySelector("a.scene-presets");
-    if (createButton != null) {
-        createButton.parentElement.removeChild(createButton);
-    }
-    if (navMenu != null) {
-        navMenu.parentElement.removeChild(navMenu);
-    }
-    if (activePreset != null) {
-        activePreset.parentElement.removeChild(activePreset);
-    }
-}
-async function assignNewNavItemsToDefault(existingNavItems) {
-    let allPresets = Settings.getPresets();
-    let assigned = [];
-    let unassigned = [];
-    for (let preset of Object.values(allPresets)) {
-        assigned = assigned.concat(preset.sceneList);
-    }
-    for (let navItem of existingNavItems) {
-        if (!assigned.includes(navItem.getAttribute("data-scene-id"))) {
-            unassigned.push(navItem.getAttribute("data-scene-id"));
-        }
-    }
-    allPresets["default"].sceneList = allPresets["default"].sceneList.concat(unassigned);
-    if (game.ready) await game.settings.set(mod, "npresets", allPresets);
-    else
-        Hooks.once("ready", async function () {
-            await game.settings.set(mod, "npresets", allPresets);
-        });
-}
-async function filterNavItemsToActivePreset(activePreset) {
-    let existingNavItems = document.querySelectorAll("li.nav-item.scene");
-    if (game.user.isGM) await assignNewNavItemsToDefault(existingNavItems);
-    for (let navItem of existingNavItems) {
-        if (!activePreset.sceneList.includes(navItem.getAttribute("data-scene-id"))) {
-            navItem.style.display = "none";
-        } else {
-            navItem.style.display = "";
-        }
-    }
-}
-function setupPresets() {
-    Settings.checkActivePresetExists();
-    let allPresets = Settings.getPresets();
-    let activePreset = allPresets[Settings.getActivePresetId()];
-    clearExistingElements();
-
-    let navbar = document.querySelector("ol#scene-list");
-
-    // Visible preset
-    let dropdown = document.createElement("a");
-    dropdown.classList.add("scene-presets");
-    let caretIcon = document.createElement("i");
-    caretIcon.classList.add("fas", "fa-caret-right");
-
-    dropdown.innerHTML = caretIcon.outerHTML + activePreset.titleText;
-    dropdown.style.backgroundColor = activePreset.colorText;
-    dropdown.setAttribute("data-npreset-id", activePreset._id);
-
-    // Other presets
-    let contextItems = document.createElement("ol");
-    contextItems.classList.add("context-items", "flexrow");
-    let presetMenu = document.createElement("nav");
-    presetMenu.classList.add("expand-down");
-    presetMenu.id = "navpresets-menu";
-    for (let preset of alphaSortPresets(allPresets)) {
-        if (preset._id === "default" && preset.sceneList?.length === 0) continue;
-        if (preset._id != activePreset._id) {
-            let preset1 = document.createElement("li");
-            preset1.classList.add("nav-preset");
-            if (presetHasActiveScene(preset)) {
-                let bullseye = document.createElement("i");
-                bullseye.classList.add("fas", "fa-bullseye");
-                preset1.innerHTML = bullseye.outerHTML + preset.titleText;
-            } else {
-                preset1.innerHTML = preset.titleText;
-            }
-            preset1.style.backgroundColor = preset.colorText;
-            preset1.setAttribute("data-npreset-id", preset._id);
-
-            //Player icons
-            let playerIcons = generatePlayerIcons(preset);
-            if (playerIcons.length > 0) {
-                let playerList = document.createElement("ul");
-                playerList.classList.add("scene-players");
-                for (let player of playerIcons) {
-                    playerList.appendChild(player);
-                }
-                preset1.appendChild(playerList);
-            }
-            contextItems.appendChild(preset1);
-        }
-    }
-    presetMenu.appendChild(contextItems);
-    presetMenu.style.display = "none";
-
-    navbar.insertAdjacentElement("afterbegin", dropdown);
-    navbar.insertAdjacentElement("afterbegin", presetMenu);
-    //Create button
-    if (game.user.isGM) {
-        let createButton = document.createElement("a");
-        createButton.classList.add("create-preset");
-        createButton.title = "Create Preset";
-        createButton.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
-        let createIcon = document.createElement("i");
-        createIcon.classList.add("fas", "fa-plus");
-
-        createButton.innerHTML = createIcon.outerHTML;
-        navbar.insertAdjacentElement("afterbegin", createButton);
-        createButton.addEventListener("click", function () {
-            let newFolder = new NavigationPreset("New Preset", "");
-            new NavigationPresetEditConfig(newFolder).render(true);
-        });
-    }
-
-    filterNavItemsToActivePreset(activePreset);
-}
-function createContextMenu(parent) {
-    if (document.querySelector("nav#preset-context-menu") != null) {
-        closeContextMenu();
-    }
-    let presetContextMenu = document.createElement("nav");
-    presetContextMenu.classList.add("expand-down");
-    presetContextMenu.id = "preset-context-menu";
-    if (parent.classList.contains("nav-preset")) {
-        presetContextMenu.style.marginLeft = parent.offsetLeft + "px";
-    }
-    let presetContextMenuList = document.createElement("ol");
-    presetContextMenuList.classList.add("context-items");
-
-    let presetEditOption = document.createElement("li");
-    presetEditOption.classList.add("context-item");
-    let editIcon = document.createElement("i");
-    editIcon.classList.add("fas", "fa-cog");
-    presetEditOption.innerHTML = editIcon.outerHTML + "Edit";
-
-    presetContextMenuList.appendChild(presetEditOption);
-
-    if (parent.getAttribute("data-npreset-id") != "default") {
-        let presetDeleteOption = document.createElement("li");
-        presetDeleteOption.classList.add("context-item");
-        let deleteIcon = document.createElement("i");
-        deleteIcon.classList.add("fas", "fa-trash");
-        presetDeleteOption.innerHTML = deleteIcon.outerHTML + "Delete";
-        presetDeleteOption.addEventListener("click", function (ev) {
-            ev.stopPropagation();
-            closeContextMenu();
-            let preset = Settings.getPresets()[parent.getAttribute("data-npreset-id")];
-            new Dialog({
-                title: "Delete Preset",
-                content:
-                    "<p>Are you sure you want to delete the preset <strong>" +
-                    preset.titleText +
-                    "?</strong></p>" +
-                    "<p><i>Navigation items in these presets will be moved to the Default preset</i></p>",
-                buttons: {
-                    yes: {
-                        icon: '<i class="fas fa-check"></i>',
-                        label: "Yes",
-                        callback: () => deletePreset(preset._id),
-                    },
-                    no: {
-                        icon: '<i class="fas fa-times"></i>',
-                        label: "No",
-                    },
-                },
-            }).render(true);
-        });
-        presetContextMenuList.appendChild(presetDeleteOption);
-    }
-
-    presetContextMenu.appendChild(presetContextMenuList);
-
-    document.addEventListener("click", function (ev) {
-        ev.stopPropagation();
-        if (ev.target != parent) {
-            closeContextMenu();
-        }
-    });
-    presetEditOption.addEventListener("click", function (ev) {
-        ev.stopPropagation();
-        //showEditDialog(parent.getAttribute('data-npreset-id'));
-        let newFolder = new NavigationPreset("Default", "");
-        let preset = Settings.getPresets()[parent.getAttribute("data-npreset-id")];
-        newFolder.initFromExisting(preset);
-        new NavigationPresetEditConfig(newFolder).render(true);
-        closeContextMenu();
-    });
-
-    parent.insertAdjacentElement("afterBegin", presetContextMenu);
-}
-function closeContextMenu() {
-    let contextMenu = document.querySelector("nav#preset-context-menu");
-    if (contextMenu != null) contextMenu.parentNode.removeChild(contextMenu);
-}
-function addEventListeners() {
-    let dropdown = document.querySelector("a.scene-presets");
-    dropdown.addEventListener("click", function (ev) {
-        ev.stopPropagation();
-        let menu = document.querySelector("#navpresets-menu");
-        if (menu.style.display == "none") {
-            let caretIcon = dropdown.querySelector("i.fa-caret-right");
-            caretIcon.classList.add("fa-caret-down");
-            caretIcon.classList.remove("fa-caret-right");
-            menu.style.display = "";
-        } else {
-            let caretIcon = dropdown.querySelector("i.fa-caret-down");
-            caretIcon.classList.add("fa-caret-right");
-            caretIcon.classList.remove("fa-caret-down");
-            menu.style.display = "none";
-        }
-    });
-    if (game.user.isGM) {
-        dropdown.addEventListener("contextmenu", function (ev) {
-            ev.stopPropagation();
-            ev.preventDefault();
-            createContextMenu(dropdown);
-        });
-    }
-    let otherPresets = document.querySelectorAll("li.nav-preset");
-    for (let preset of otherPresets) {
-        preset.addEventListener("click", async function (ev) {
-            ev.stopPropagation();
-            if (!isEventRightClick(ev)) {
-                await Settings.activatePreset(preset.getAttribute("data-npreset-id"));
-                refreshPresets();
-            }
-        });
-        if (game.user.isGM) {
-            preset.addEventListener("contextmenu", function (ev) {
-                ev.stopPropagation();
-                ev.preventDefault();
-                createContextMenu(preset);
-            });
-        }
-    }
-}
 class NavigationPresetEditConfig extends FormApplication {
     static get defaultOptions() {
         const options = super.defaultOptions;
@@ -456,70 +181,351 @@ class NavigationPresetEditConfig extends FormApplication {
                 },
             }).render(true);
         } else {
-            await updatePresets(scenesToAdd, scenesToRemove, this.object);
+            await game.NavigationPresets.updatePresets(scenesToAdd, scenesToRemove, this.object);
         }
     }
 }
 
-function refreshPresets() {
-    setupPresets();
-    addEventListeners();
-}
-
-async function updatePresets(scenesToAdd, scenesToRemove, preset) {
-    let presetId = preset._id;
-    let allPresets = Settings.getPresets();
-    if (allPresets[presetId] == null) {
-        allPresets[presetId] = preset;
-    }
-    let scenesMoved = [];
-    for (let sceneKey of scenesToAdd) {
-        Object.keys(allPresets).forEach(function (sId) {
-            if (allPresets[sId].sceneList.includes(sceneKey)) {
-                allPresets[sId].sceneList.splice(allPresets[sId].sceneList.indexOf(sceneKey), 1);
-                console.log(modName + " | Removing " + sceneKey + " from preset " + allPresets[sId].titleText);
-                if (sId != "hidden") {
-                    scenesMoved.push(sceneKey);
+function defineClassesAndSettings() {
+    Settings.registerSettings();
+    class NavigationPresets {
+        async initPresets() {
+            let allPresets = Settings.getPresets();
+            let sceneIds = this.getVisibleNavIds();
+            allPresets["default"] = { sceneList: sceneIds, titleText: "Default", _id: "default", colorText: "#000000", isActive: true };
+            if (game.ready) await game.settings.set(mod, "npresets", allPresets);
+            else
+                Hooks.once("ready", async function () {
+                    await game.settings.set(mod, "npresets", allPresets);
+                });
+        }
+        clearExistingElements() {
+            let createButton = document.querySelector("a.create-preset");
+            let navMenu = document.querySelector("nav#navpresets-menu");
+            let activePreset = document.querySelector("a.scene-presets");
+            if (createButton != null) {
+                createButton.parentElement.removeChild(createButton);
+            }
+            if (navMenu != null) {
+                navMenu.parentElement.removeChild(navMenu);
+            }
+            if (activePreset != null) {
+                activePreset.parentElement.removeChild(activePreset);
+            }
+        }
+        async assignNewNavItemsToDefault(existingNavItems) {
+            let allPresets = Settings.getPresets();
+            let assigned = [];
+            let unassigned = [];
+            for (let preset of Object.values(allPresets)) {
+                assigned = assigned.concat(preset.sceneList);
+            }
+            for (let navItem of existingNavItems) {
+                if (!assigned.includes(navItem.getAttribute("data-scene-id"))) {
+                    unassigned.push(navItem.getAttribute("data-scene-id"));
                 }
             }
-        });
+            allPresets["default"].sceneList = allPresets["default"].sceneList.concat(unassigned);
+            if (game.ready) await game.settings.set(mod, "npresets", allPresets);
+            else
+                Hooks.once("ready", async function () {
+                    await game.settings.set(mod, "npresets", allPresets);
+                });
+        }
+        async filterNavItemsToActivePreset(activePreset) {
+            let existingNavItems = document.querySelectorAll("li.nav-item.scene");
+            if (game.user.isGM) await this.assignNewNavItemsToDefault(existingNavItems);
+            for (let navItem of existingNavItems) {
+                if (!activePreset.sceneList.includes(navItem.getAttribute("data-scene-id"))) {
+                    navItem.style.display = "none";
+                } else {
+                    navItem.style.display = "";
+                }
+            }
+        }
+        setupPresets() {
+            Settings.checkActivePresetExists();
+            let allPresets = Settings.getPresets();
+            let activePreset = allPresets[Settings.getActivePresetId()];
+            this.clearExistingElements();
 
-        allPresets[presetId].sceneList.push(sceneKey);
-        console.log(modName + " | Adding " + sceneKey + " to preset " + preset.titleText);
-    }
-    if (scenesMoved.length > 0) {
-        ui.notifications.notify(
-            "Removing " + scenesMoved.length + " scene" + (scenesMoved.length > 1 ? "s from other presets" : " from another preset")
-        );
-    }
-    if (scenesToRemove.length > 0) {
-        ui.notifications.notify(
-            "Adding " + scenesToRemove.length + " scene" + (scenesToRemove.length > 1 ? "s" : "") + " to default preset"
-        );
-    }
-    for (let sceneKey of scenesToRemove) {
-        allPresets[presetId].sceneList.splice(allPresets[presetId].sceneList.indexOf(sceneKey), 1);
-        allPresets["default"].sceneList.push(sceneKey);
-        console.log(modName + " | Adding " + sceneKey + " to preset " + allPresets["default"].titleText);
-    }
-    allPresets[presetId].titleText = preset.titleText;
-    allPresets[presetId].colorText = preset.colorText;
+            let navbar = document.querySelector("ol#scene-list");
 
-    await game.settings.set(mod, "npresets", allPresets);
-    refreshPresets();
-}
-async function deletePreset(presetId) {
-    let allPresets = Settings.getPresets();
-    for (let scene of allPresets[presetId].sceneList) {
-        allPresets["default"].sceneList.push(scene);
+            // Visible preset
+            let dropdown = document.createElement("a");
+            dropdown.classList.add("scene-presets");
+            let caretIcon = document.createElement("i");
+            caretIcon.classList.add("fas", "fa-caret-right");
+
+            dropdown.innerHTML = caretIcon.outerHTML + activePreset.titleText;
+            dropdown.style.backgroundColor = activePreset.colorText;
+            dropdown.setAttribute("data-npreset-id", activePreset._id);
+
+            // Other presets
+            let contextItems = document.createElement("ol");
+            contextItems.classList.add("context-items", "flexrow");
+            let presetMenu = document.createElement("nav");
+            presetMenu.classList.add("expand-down");
+            presetMenu.id = "navpresets-menu";
+            for (let preset of alphaSortPresets(allPresets)) {
+                if (preset._id === "default" && preset.sceneList?.length === 0) continue;
+                if (preset._id != activePreset._id) {
+                    let preset1 = document.createElement("li");
+                    preset1.classList.add("nav-preset");
+                    if (this.presetHasActiveScene(preset)) {
+                        let bullseye = document.createElement("i");
+                        bullseye.classList.add("fas", "fa-bullseye");
+                        preset1.innerHTML = bullseye.outerHTML + preset.titleText;
+                    } else {
+                        preset1.innerHTML = preset.titleText;
+                    }
+                    preset1.style.backgroundColor = preset.colorText;
+                    preset1.setAttribute("data-npreset-id", preset._id);
+
+                    //Player icons
+                    let playerIcons = this.generatePlayerIcons(preset);
+                    if (playerIcons.length > 0) {
+                        let playerList = document.createElement("ul");
+                        playerList.classList.add("scene-players");
+                        for (let player of playerIcons) {
+                            playerList.appendChild(player);
+                        }
+                        preset1.appendChild(playerList);
+                    }
+                    contextItems.appendChild(preset1);
+                }
+            }
+            presetMenu.appendChild(contextItems);
+            presetMenu.style.display = "none";
+
+            navbar.insertAdjacentElement("afterbegin", dropdown);
+            navbar.insertAdjacentElement("afterbegin", presetMenu);
+            //Create button
+            if (game.user.isGM) {
+                let createButton = document.createElement("a");
+                createButton.classList.add("create-preset");
+                createButton.title = "Create Preset";
+                createButton.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
+                let createIcon = document.createElement("i");
+                createIcon.classList.add("fas", "fa-plus");
+
+                createButton.innerHTML = createIcon.outerHTML;
+                navbar.insertAdjacentElement("afterbegin", createButton);
+                createButton.addEventListener("click", function () {
+                    let newFolder = new NavigationPreset("New Preset", "");
+                    new NavigationPresetEditConfig(newFolder).render(true);
+                });
+            }
+
+            this.filterNavItemsToActivePreset(activePreset);
+        }
+        createContextMenu(parent) {
+            if (document.querySelector("nav#preset-context-menu") != null) {
+                this.closeContextMenu();
+            }
+            let presetContextMenu = document.createElement("nav");
+            presetContextMenu.classList.add("expand-down");
+            presetContextMenu.id = "preset-context-menu";
+            if (parent.classList.contains("nav-preset")) {
+                presetContextMenu.style.marginLeft = parent.offsetLeft + "px";
+            }
+            let presetContextMenuList = document.createElement("ol");
+            presetContextMenuList.classList.add("context-items");
+
+            let presetEditOption = document.createElement("li");
+            presetEditOption.classList.add("context-item");
+            let editIcon = document.createElement("i");
+            editIcon.classList.add("fas", "fa-cog");
+            presetEditOption.innerHTML = editIcon.outerHTML + "Edit";
+
+            presetContextMenuList.appendChild(presetEditOption);
+
+            if (parent.getAttribute("data-npreset-id") != "default") {
+                let presetDeleteOption = document.createElement("li");
+                presetDeleteOption.classList.add("context-item");
+                let deleteIcon = document.createElement("i");
+                deleteIcon.classList.add("fas", "fa-trash");
+                presetDeleteOption.innerHTML = deleteIcon.outerHTML + "Delete";
+                presetDeleteOption.addEventListener("click", function (ev) {
+                    ev.stopPropagation();
+                    game.NavigationPresets.closeContextMenu();
+                    let preset = Settings.getPresets()[parent.getAttribute("data-npreset-id")];
+                    new Dialog({
+                        title: "Delete Preset",
+                        content:
+                            "<p>Are you sure you want to delete the preset <strong>" +
+                            preset.titleText +
+                            "?</strong></p>" +
+                            "<p><i>Navigation items in these presets will be moved to the Default preset</i></p>",
+                        buttons: {
+                            yes: {
+                                icon: '<i class="fas fa-check"></i>',
+                                label: "Yes",
+                                callback: () => this.deletePreset(preset._id),
+                            },
+                            no: {
+                                icon: '<i class="fas fa-times"></i>',
+                                label: "No",
+                            },
+                        },
+                    }).render(true);
+                });
+                presetContextMenuList.appendChild(presetDeleteOption);
+            }
+
+            presetContextMenu.appendChild(presetContextMenuList);
+
+            document.addEventListener("click", function (ev) {
+                ev.stopPropagation();
+                if (ev.target != parent) {
+                    game.NavigationPresets.closeContextMenu();
+                }
+            });
+            presetEditOption.addEventListener("click", function (ev) {
+                ev.stopPropagation();
+                //showEditDialog(parent.getAttribute('data-npreset-id'));
+                let newFolder = new NavigationPreset("Default", "");
+                let preset = Settings.getPresets()[parent.getAttribute("data-npreset-id")];
+                newFolder.initFromExisting(preset);
+                new NavigationPresetEditConfig(newFolder).render(true);
+                game.NavigationPresets.closeContextMenu();
+            });
+
+            parent.insertAdjacentElement("afterBegin", presetContextMenu);
+        }
+        closeContextMenu() {
+            let contextMenu = document.querySelector("nav#preset-context-menu");
+            if (contextMenu != null) contextMenu.parentNode.removeChild(contextMenu);
+        }
+        addEventListeners() {
+            let dropdown = document.querySelector("a.scene-presets");
+            dropdown.addEventListener("click", function (ev) {
+                ev.stopPropagation();
+                let menu = document.querySelector("#navpresets-menu");
+                if (menu.style.display == "none") {
+                    let caretIcon = dropdown.querySelector("i.fa-caret-right");
+                    caretIcon.classList.add("fa-caret-down");
+                    caretIcon.classList.remove("fa-caret-right");
+                    menu.style.display = "";
+                } else {
+                    let caretIcon = dropdown.querySelector("i.fa-caret-down");
+                    caretIcon.classList.add("fa-caret-right");
+                    caretIcon.classList.remove("fa-caret-down");
+                    menu.style.display = "none";
+                }
+            });
+            if (game.user.isGM) {
+                dropdown.addEventListener("contextmenu", function (ev) {
+                    ev.stopPropagation();
+                    ev.preventDefault();
+                    game.NavigationPresets.createContextMenu(dropdown);
+                });
+            }
+            let otherPresets = document.querySelectorAll("li.nav-preset");
+            for (let preset of otherPresets) {
+                preset.addEventListener("click", async function (ev) {
+                    ev.stopPropagation();
+                    if (!isEventRightClick(ev)) {
+                        await Settings.activatePreset(preset.getAttribute("data-npreset-id"));
+                        game.NavigationPresets.refreshPresets();
+                    }
+                });
+                if (game.user.isGM) {
+                    preset.addEventListener("contextmenu", function (ev) {
+                        ev.stopPropagation();
+                        ev.preventDefault();
+                        game.NavigationPresets.createContextMenu(preset);
+                    });
+                }
+            }
+        }
+        refreshPresets() {
+            this.setupPresets();
+            this.addEventListeners();
+        }
+        async updatePresets(scenesToAdd, scenesToRemove, preset) {
+            let presetId = preset._id;
+            let allPresets = Settings.getPresets();
+            if (allPresets[presetId] == null) {
+                allPresets[presetId] = preset;
+            }
+            let scenesMoved = [];
+            for (let sceneKey of scenesToAdd) {
+                Object.keys(allPresets).forEach(function (sId) {
+                    if (allPresets[sId].sceneList.includes(sceneKey)) {
+                        allPresets[sId].sceneList.splice(allPresets[sId].sceneList.indexOf(sceneKey), 1);
+                        console.log(modName + " | Removing " + sceneKey + " from preset " + allPresets[sId].titleText);
+                        if (sId != "hidden") {
+                            scenesMoved.push(sceneKey);
+                        }
+                    }
+                });
+
+                allPresets[presetId].sceneList.push(sceneKey);
+                console.log(modName + " | Adding " + sceneKey + " to preset " + preset.titleText);
+            }
+            if (scenesMoved.length > 0) {
+                ui.notifications.notify(
+                    "Removing " + scenesMoved.length + " scene" + (scenesMoved.length > 1 ? "s from other presets" : " from another preset")
+                );
+            }
+            if (scenesToRemove.length > 0) {
+                ui.notifications.notify(
+                    "Adding " + scenesToRemove.length + " scene" + (scenesToRemove.length > 1 ? "s" : "") + " to default preset"
+                );
+            }
+            for (let sceneKey of scenesToRemove) {
+                allPresets[presetId].sceneList.splice(allPresets[presetId].sceneList.indexOf(sceneKey), 1);
+                allPresets["default"].sceneList.push(sceneKey);
+                console.log(modName + " | Adding " + sceneKey + " to preset " + allPresets["default"].titleText);
+            }
+            allPresets[presetId].titleText = preset.titleText;
+            allPresets[presetId].colorText = preset.colorText;
+
+            await game.settings.set(mod, "npresets", allPresets);
+            this.refreshPresets();
+        }
+        async deletePreset(presetId) {
+            let allPresets = Settings.getPresets();
+            for (let scene of allPresets[presetId].sceneList) {
+                allPresets["default"].sceneList.push(scene);
+            }
+            delete allPresets[presetId];
+            await game.settings.set(mod, "npresets", allPresets);
+            this.refreshPresets();
+        }
+        generatePlayerIcons(preset) {
+            let playerIconList = [];
+            for (let scene of document.querySelectorAll("li.scene.nav-item")) {
+                if (preset.sceneList.includes(scene.getAttribute("data-scene-id"))) {
+                    let players = scene.querySelectorAll(".scene-players > .scene-player");
+                    if (players != null) {
+                        for (let player of players) {
+                            let newPlayer = player.cloneNode();
+                            newPlayer.innerText = player.innerText;
+                            playerIconList.push(newPlayer);
+                        }
+                    }
+                }
+            }
+            return playerIconList;
+        }
+        presetHasActiveScene(preset) {
+            for (let scene of document.querySelectorAll("li.scene.nav-item")) {
+                if (preset.sceneList.includes(scene.getAttribute("data-scene-id"))) {
+                    if (scene.querySelector("i.fa-bullseye") != null) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
     }
-    delete allPresets[presetId];
-    await game.settings.set(mod, "npresets", allPresets);
-    refreshPresets();
+    game.NavigationPresets = new NavigationPresets();
+    game.NP = {
+        NavigationPreset,
+    };
 }
-//TODO scene import gui:
-// game.folders.entries.filter(function(e){return e.type==='Scene'}) all scene folders
-// folder.entities = scenes
 export class Settings {
     static registerSettings() {
         game.settings.register(mod, "npresets", {
@@ -622,12 +628,11 @@ class SceneNavigationPresets extends SceneNavigation {
         return { collapsed: this._collapsed, scenes: scenes };
     }
 }
-
 Hooks.once("init", async function () {
     Hooks.on("setup", async function () {
         CONFIG.ui.nav = SceneNavigationPresets;
     });
-    Settings.registerSettings();
+    defineClassesAndSettings();
     Hooks.on("renderSceneNavigation", function () {
         Hooks.call("renderSceneNavigationPresets");
     });
@@ -637,8 +642,8 @@ Hooks.once("init", async function () {
             if (Object.keys(Settings.getPresets()).length === 0) {
                 await initPresets();
             }
-            setupPresets();
-            addEventListeners();
+            game.NavigationPresets.setupPresets();
+            game.NavigationPresets.addEventListeners();
         }
     });
 });
