@@ -9,11 +9,11 @@
         "discord": "Erceron#0370"
       }
     ],
-    "version": "1.1.2",
+    "version": "1.1.3",
     "compatibility": {
-      "minimum": 10,
-      "verified": "10.288",
-      "maximum": 10
+      "minimum": 1,
+      "verified": "11.300",
+      "maximum": 1
     },
     "esmodules": [
         "./navigation-presets.js"
@@ -21,5 +21,5 @@
     "styles": ["./styles.css"],
     "url": "https://github.com/earlSt1/vtt-navigation-presets",
     "manifest": "https://raw.githubusercontent.com/earlSt1/vtt-navigation-presets/09x-update/module.json",
-    "download": "https://github.com/earlSt1/vtt-navigation-presets/releases/download/1.1.2/1.1.2.zip"
+    "download": "https://github.com/earlSt1/vtt-navigation-presets/releases/download/1.1.3/1.1.3.zip"
   }
